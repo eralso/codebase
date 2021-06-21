@@ -23,10 +23,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <unistd.h> // read() write() close()
+#include <fcntl.h>  // open()
 
-#define FILE_PATH "md5.cpp"
+// 文件路径
+#define FILE_PATH "123.txt"
 
 #define F(x, y, z) ((x & y) | (~x & z))
 #define G(x, y, z) ((x & z) | (y & ~z))
@@ -73,13 +74,6 @@ unsigned char PADDING[] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-void MD5Init(MD5_CTX *context);
-void MD5Update(MD5_CTX *context, unsigned char *input, unsigned int inputlen);
-void MD5Final(MD5_CTX *context, unsigned char digest[16]);
-void MD5Encode(unsigned char *output, unsigned int *input, unsigned int len);
-void MD5Decode(unsigned int *output, unsigned char *input, unsigned int len);
-void MD5Transform(unsigned int state[4], unsigned char block[64]);
-
 void MD5Init(MD5_CTX *context)
 {
     context->count[0] = 0;
@@ -109,7 +103,7 @@ void MD5Transform(unsigned int state[4], unsigned char block[64])
     unsigned int b = state[1];
     unsigned int c = state[2];
     unsigned int d = state[3];
-    unsigned int x[16];      // X[]长32位长
+    unsigned int x[16];      // X[]32位长
     MD5Decode(x, block, 64); // 计算X[0...15]
 
     FF(a, b, c, d, x[0], 7, 0xd76aa478);   /* 1 */
@@ -192,16 +186,15 @@ void MD5Transform(unsigned int state[4], unsigned char block[64])
 void MD5Update(MD5_CTX *context, unsigned char *input, unsigned int inputlen)
 {
     unsigned int i = 0, idx = 0, partlen = 0;
-    idx = (context->count[0] >> 3) & 0x3F; // 取当前buffer中有多少字符
-    // buffer缓冲区最大64位，count[0]记录总位数，count[0]/8是char的长度，取后也就是看当前buffer中的字符数
-    partlen = 64 /*个字符char*/ - idx;  // 空位
-    context->count[0] += inputlen << 3; // (char长度)input * 8位 = 总位数
+    idx = (context->count[0] >> 3) & 0x3F; // 取当前buffer中有多少字符。buffer缓冲区最大64位，count[0]记录总位数，count[0]/8是char的长度，取后也就是看当前buffer中的字符数
+    partlen = 64 - idx;                    // 空的字节数
+    context->count[0] += inputlen << 3;    // (char长度)input * 8位 = 总位数
     if (context->count[0] < (inputlen << 3))
         context->count[1]++;             // count[0]越界了，进位给count[1]
     context->count[1] += inputlen >> 29; // input再右移29位相当于总位数右移32位，超出部分存在count[1]里
 
-    // 对缓冲区分块处理，每次处理512位，即64个字符
-    if (inputlen >= partlen) /* 如果输入长度大于等于空位长 */
+    /* 对缓冲区分块处理，每次处理512位，即64个字符 */
+    if (inputlen >= partlen) // 如果输入长度大于等于空位长
     {
         memcpy(&context->buffer[idx], input, partlen); // 补全空位
         MD5Transform(context->state, context->buffer);
@@ -301,9 +294,10 @@ int calc_md5(char *filepath, char *dest)
 int main()
 {
     int file_len = 0;
-    char md5_str[64] = {0};
+    char md5_str[64] = {0}; // 存储MD5摘要结果
 
     file_len = calc_md5(FILE_PATH, md5_str);
+
     if (file_len < 0)
     {
         printf("MD5 calculation failed...\n");
