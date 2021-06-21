@@ -59,13 +59,13 @@ void SHA1Init(SHA_1 *context)
     context->state[4] = 0xC3D2E1F0;
 }
 
-/* 将input转换成16个32比特长的字存到output中，即X[0,1,...,15] */
+/* 计算W[] */
 void SHA1Decode(unsigned int *output, unsigned char *input, unsigned int len)
 {
     unsigned int i = 0, j = 0;
     while (j < len)
     {
-        output[i] = (input[j] << 24) | (input[j + 1] << 16) | (input[j + 2] << 8) | (input[j + 3]); // ��ÿ4��charƴ�ӳ�һ��int
+        output[i] = (input[j] << 24) | (input[j + 1] << 16) | (input[j + 2] << 8) | (input[j + 3]); // big-endian方式
         i++, j += 4;
     }
     for (i = 16; i < 80; i++)
@@ -102,7 +102,6 @@ void SHA1Transform(unsigned int state[5], unsigned char block[64])
     {
         FF1(a, b, c, d, e, w[i], 0x5A827999);
         Register_shift(&a, &b, &c, &d, &e);
-        // printf("%x %x %x %x %x\n", a, b, c, d, e);
     }
     for (i = 20; i < 40; i++)
     {
@@ -212,7 +211,7 @@ int calc_sha1(char *filepath, char *dest)
         }
         if (read_len == 0)
             break;
-        file_len += (long long int)read_len; // ͳ���ļ��ܴ�С
+        file_len += (long long int)read_len; // 统计文件总大小
 
         SHA1Update(&SHA1, (unsigned char *)hexbuffer, read_len);
     }
