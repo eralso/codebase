@@ -80,13 +80,6 @@ unsigned char PADDING[] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-void MD5Init(MD5_CTX *context);
-void MD5Update(MD5_CTX *context, unsigned char *input, unsigned int inputlen);
-void MD5Final(MD5_CTX *context, unsigned char digest[16]);
-void MD5Encode(unsigned char *output, unsigned int *input, unsigned int len);
-void MD5Decode(unsigned int *output, unsigned char *input, unsigned int len);
-void MD5Transform(unsigned int state[4], unsigned char block[64]);
-
 void MD5Init(MD5_CTX *context)
 {
     context->count[0] = 0;
@@ -120,7 +113,7 @@ void Register_shift(unsigned int *a, unsigned int *b, unsigned int *c, unsigned 
     *a = tmp;
 }
 
-/* 64轮变换 */
+/* 每个512bit的分组进行64轮变换 */
 void MD5Transform(unsigned int state[4], unsigned char block[64])
 {
     unsigned int a = state[0];
